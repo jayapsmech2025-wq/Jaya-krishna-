@@ -33,6 +33,7 @@ import {
 } from "recharts";
 import { motion, AnimatePresence } from "motion/react";
 import { useAuth } from "./components/FirebaseProvider";
+import { getWaterForecast, detectAnomalies } from "./lib/gemini";
 
 // Types
 interface SensorData {
@@ -70,6 +71,7 @@ export default function App() {
   const [forecast, setForecast] = useState<ForecastData[]>([]);
   const [alerts, setAlerts] = useState<Alert[]>([]);
   const [loading, setLoading] = useState(true);
+  const [aiSummary, setAiSummary] = useState<string>("");
 
   useEffect(() => {
     const fetchData = async () => {
@@ -87,7 +89,22 @@ export default function App() {
         // Fetch forecast for initial region
         const forecastRes = await fetch(`/api/forecast?region=${selectedRegion}`);
         const forecastData = await forecastRes.json();
-        setForecast(forecastData.forecast);
+        
+        // Try to get AI-powered forecast from frontend
+        const currentRegionData = sensorData.find((s: any) => s.region === selectedRegion);
+        if (currentRegionData) {
+          const aiResult = await getWaterForecast(currentRegionData);
+          if (aiResult && aiResult.forecast) {
+            setForecast(aiResult.forecast);
+            setAiSummary(aiResult.summary);
+          } else {
+            setForecast(forecastData.forecast);
+            setAiSummary(forecastData.summary);
+          }
+        } else {
+          setForecast(forecastData.forecast);
+          setAiSummary(forecastData.summary);
+        }
         
         setLoading(false);
       } catch (error) {
@@ -348,7 +365,7 @@ export default function App() {
               <div className="flex items-center justify-between mb-8">
                 <div>
                   <h3 className="text-lg font-bold text-white">6-Month Water Availability Forecast</h3>
-                  <p className="text-sm text-slate-400">Predictive analysis for {selectedRegion} Region</p>
+                  <p className="text-sm text-slate-400">{aiSummary || `Predictive analysis for ${selectedRegion} Region`}</p>
                 </div>
                 <div className="flex items-center gap-4">
                   <div className="flex items-center gap-2">

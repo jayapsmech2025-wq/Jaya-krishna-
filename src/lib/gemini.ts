@@ -1,8 +1,16 @@
 import { GoogleGenAI } from "@google/genai";
 
-const ai = new GoogleGenAI({ apiKey: process.env.GEMINI_API_KEY || "" });
+// Initialize Gemini AI
+// Note: process.env.GEMINI_API_KEY is automatically injected by the platform
+const apiKey = process.env.GEMINI_API_KEY;
+const ai = new GoogleGenAI({ apiKey: apiKey || "" });
 
 export async function getWaterForecast(sensorData: any) {
+  if (!apiKey) {
+    console.warn("GEMINI_API_KEY is missing. Using fallback data.");
+    return null;
+  }
+
   try {
     const response = await ai.models.generateContent({
       model: "gemini-3-flash-preview",
@@ -29,6 +37,11 @@ export async function getWaterForecast(sensorData: any) {
 }
 
 export async function detectAnomalies(sensorData: any) {
+  if (!apiKey) {
+    console.warn("GEMINI_API_KEY is missing. No anomalies detected.");
+    return { anomalies: [] };
+  }
+
   try {
     const response = await ai.models.generateContent({
       model: "gemini-3-flash-preview",

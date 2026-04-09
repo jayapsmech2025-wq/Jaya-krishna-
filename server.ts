@@ -2,7 +2,6 @@ import express from "express";
 import { createServer as createViteServer } from "vite";
 import path from "path";
 import { fileURLToPath } from "url";
-import { getWaterForecast, detectAnomalies } from "./src/lib/gemini.ts";
 
 const __filename = fileURLToPath(import.meta.url);
 const __dirname = path.dirname(__filename);
@@ -13,10 +12,8 @@ async function startServer() {
 
   app.use(express.json());
 
-  // Big Data Pipeline Simulation
-  // In a real scenario, this would be Kafka -> Spark -> DB
-  const processDataPipeline = async (rawData: any) => {
-    console.log("Ingesting data into pipeline...");
+  // Data Pipeline Simulation
+  const processDataPipeline = (rawData: any) => {
     // Simulate cleaning and feature engineering
     const cleanedData = rawData.map((d: any) => ({
       ...d,
@@ -24,9 +21,7 @@ async function startServer() {
       water_index: (d.reservoir_level * 0.4) + (d.groundwater_level * 0.3) + (d.soil_moisture * 0.3)
     }));
     
-    // Detect anomalies using AI
-    const anomalies = await detectAnomalies(cleanedData);
-    return { cleanedData, anomalies };
+    return { cleanedData };
   };
 
   // API Routes
@@ -34,7 +29,7 @@ async function startServer() {
     res.json({ status: "ok", service: "Smart Water Grid" });
   });
 
-  app.get("/api/sensors", async (req, res) => {
+  app.get("/api/sensors", (req, res) => {
     const regions = ["North", "South", "East", "West", "Central"];
     const rawData = regions.map(region => ({
       region,
@@ -49,38 +44,24 @@ async function startServer() {
       timestamp: new Date().toISOString()
     }));
 
-    const { cleanedData } = await processDataPipeline(rawData);
+    const { cleanedData } = processDataPipeline(rawData);
     res.json(cleanedData);
   });
 
-  app.get("/api/forecast", async (req, res) => {
+  app.get("/api/forecast", (req, res) => {
     const region = req.query.region as string || "Central";
     
-    // In a production app, we'd fetch historical data from DB
-    // Here we simulate recent data for the AI to analyze
-    const mockHistory = Array.from({ length: 5 }).map((_, i) => ({
-      month: `Month -${5-i}`,
-      reservoir_level: 40 + Math.random() * 20,
-      rainfall: Math.random() * 100
-    }));
-
-    const aiForecast = await getWaterForecast({ region, history: mockHistory });
-    
-    if (aiForecast) {
-      res.json(aiForecast);
-    } else {
-      // Fallback mock
-      const months = ["Apr", "May", "Jun", "Jul", "Aug", "Sep"];
-      res.json({
-        region,
-        forecast: months.map((month, i) => ({
-          month,
-          water_availability: 70 - (i * 3) + (Math.random() * 10),
-          risk: i > 3 ? "MEDIUM" : "LOW"
-        })),
-        summary: "Seasonal decline expected during summer months."
-      });
-    }
+    // Fallback mock data
+    const months = ["Apr", "May", "Jun", "Jul", "Aug", "Sep"];
+    res.json({
+      region,
+      forecast: months.map((month, i) => ({
+        month,
+        water_availability: 70 - (i * 3) + (Math.random() * 10),
+        risk: i > 3 ? "MEDIUM" : "LOW"
+      })),
+      summary: "Seasonal decline expected during summer months."
+    });
   });
 
   app.get("/api/alerts", (req, res) => {
