@@ -1,0 +1,5 @@
+{
+  "name": "Smart Water Grid",
+  "description": "A scalable AI-powered platform for National Water Resource Management, integrating real-time environmental data and predicting regional water scarcity or surplus up to 6 months in advance.",
+  "requestFramePermissions": []
+}

@@ -1,11 +1,27 @@
-<div align="center">
+# National Water Intelligence Platform
 
-<img width="1200" height="475" alt="GHBanner" src="https://github.com/user-attachments/assets/0aa67016-6eaf-458a-adb2-6e31a0763ed6" />
+An end-to-end Big Data platform for National Water Resource Management.
 
-  <h1>Built with AI Studio</h2>
+## Features
+- **Real-time Dashboard**: Monitor reservoir levels, groundwater, rainfall, and soil moisture.
+- **AI Forecasting**: 6-month predictive analysis using Gemini 3.1 Flash.
+- **Big Data Pipeline**: Simulated ingestion, cleaning, and feature engineering.
+- **Alert System**: Real-time drought and flood risk notifications.
+- **Regional Visualization**: Interactive map and comparative charts.
 
-  <p>The fastest path from prompt to production with Gemini.</p>
+## Tech Stack
+- **Frontend**: React, Tailwind CSS, Recharts, Lucide Icons, Framer Motion.
+- **Backend**: Node.js (Express), Gemini API.
+- **AI**: Google Gemini for predictive modeling and anomaly detection.
 
-  <a href="https://aistudio.google.com/apps">Start building</a>
+## How to Run
+1. Ensure you have Node.js installed.
+2. Run `npm install` to install dependencies.
+3. Set your `GEMINI_API_KEY` in the environment or `.env` file.
+4. Run `npm run dev` to start the full-stack application.
+5. Access the dashboard at `http://localhost:3000`.
 
-</div>
+## Architecture
+- `server.ts`: Express backend handling API routes and data pipeline simulation.
+- `src/App.tsx`: React frontend with the dashboard UI.
+- `src/lib/gemini.ts`: Integration with Gemini for forecasting and analysis.

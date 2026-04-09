@@ -1,0 +1,70 @@
+rules_version = '2';
+service cloud.firestore {
+  match /databases/{database}/documents {
+    // ===============================================================
+    // Assumed Data Model
+    // ===============================================================
+    //
+    // Collection: sensors
+    // Fields: region, reservoir_level, groundwater_level, rainfall, river_flow, soil_moisture, temperature, humidity, evaporation, timestamp
+    //
+    // Collection: forecasts
+    // Fields: region, forecast (array), summary, timestamp
+    //
+    // Collection: alerts
+    // Fields: type, region, severity, message, timestamp
+    //
+    // ===============================================================
+
+    // Helper Functions
+    function isAuthenticated() {
+      return request.auth != null;
+    }
+
+    function isAdmin() {
+      return isAuthenticated() &&
+        (get(/databases/$(database)/documents/users/$(request.auth.uid)).data.role == 'admin' ||
+          (request.auth.token.email == "jayakrish211@gmail.com" && request.auth.token.email_verified == true));
+    }
+
+    function isValidSensor(data) {
+      return data.region is string &&
+             data.reservoir_level is number &&
+             data.timestamp is string;
+    }
+
+    function isValidForecast(data) {
+      return data.region is string &&
+             data.forecast is list &&
+             data.timestamp is string;
+    }
+
+    function isValidAlert(data) {
+      return data.type in ['DROUGHT', 'FLOOD', 'ANOMALY'] &&
+             data.severity in ['LOW', 'WARNING', 'CRITICAL'] &&
+             data.region is string &&
+             data.message is string;
+    }
+
+    // Rules
+    match /sensors/{sensorId} {
+      allow read: if isAuthenticated();
+      allow write: if isAdmin() && isValidSensor(request.resource.data);
+    }
+
+    match /forecasts/{forecastId} {
+      allow read: if isAuthenticated();
+      allow write: if isAdmin() && isValidForecast(request.resource.data);
+    }
+
+    match /alerts/{alertId} {
+      allow read: if isAuthenticated();
+      allow write: if isAdmin() && isValidAlert(request.resource.data);
+    }
+
+    match /users/{userId} {
+      allow read: if isAuthenticated() && (request.auth.uid == userId || isAdmin());
+      allow write: if isAdmin();
+    }
+  }
+}
